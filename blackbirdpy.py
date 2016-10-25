@@ -25,14 +25,8 @@
 #   $ python blackbirdpy.py http://twitter.com/punchfork/status/16342628623
 #
 
-
-from datetime import datetime, timedelta
-import email.utils
-import json
 import re
 import sys
-import os
-import urllib2
 
 import keyring
 import pytz
@@ -64,6 +58,7 @@ def setup_api():
     auth.set_access_token(key=a['token'], secret=a['tokenSecret'])
     return tweepy.API(auth)
 
+
 def wrap_entities(t):
   """Turn URLs and @ mentions into links. Embed Twitter native photos."""
   text = t.text
@@ -75,14 +70,14 @@ def wrap_entities(t):
     media = t.extended_entities['media']
   except (KeyError, AttributeError):
     media = []
-  
+
   for u in urls:
     try:
       link = '<a href="' + u['expanded_url'] + '">' + u['display_url'] + '</a>'
     except (KeyError, TypeError):
       link = '<a href="' + u['url'] + '">' + u['url'] + '</a>'
     text = text.replace(u['url'], link)
-  
+
   for m in mentions:
     text = re.sub('(?i)@' + m['screen_name'], '<a href="http://twitter.com/' +
             m['screen_name'] + '">@' + m['screen_name'] + '</a>', text, 0)
@@ -90,7 +85,7 @@ def wrap_entities(t):
   for h in hashtags:
     text = re.sub('(?i)#' + h['text'], '<a href="http://twitter.com/search/%23' +
             h['text'] + '">#' + h['text'] + '</a>', text, 0)
-  
+
   # For some reason, multiple photos have only one URL in the text of the tweet.
   if len(media) > 0:
     photolink = ''
@@ -104,7 +99,7 @@ def wrap_entities(t):
     text = text.replace(m['url'], photolink)
 
   return text
-    
+
 def tweet_id_from_tweet_url(tweet_url):
     """Extract and return the numeric tweet ID from a full tweet URL."""
     match = re.match(r'^https?://twitter\.com/(?:#!\/)?\w+/status(?:es)?/(\d+)$', tweet_url)
@@ -158,4 +153,4 @@ def embed_tweet_html(tweet_url, extra_css=None):
 
 
 if __name__ == '__main__':
-    print embed_tweet_html(sys.argv[1]).encode('utf8')
+    print(embed_tweet_html(sys.argv[1]).encode('utf8'))
