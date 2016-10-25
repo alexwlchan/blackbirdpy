@@ -33,6 +33,8 @@ import re
 import sys
 import os
 import urllib2
+
+import keyring
 import pytz
 import tweepy
 
@@ -41,17 +43,26 @@ myTZ = pytz.timezone('US/Central')
 TWEET_EMBED_HTML = u'''<div class="bbpBox" id="t{id}">\n<blockquote>\n<span class="twContent">{tweetText}</span><span class="twMeta"><br /><span class="twDecoration">&mdash; </span><span class="twRealName">{realName}</span><span class="twDecoration"> (</span><a href="http://twitter.com/{screenName}"><span class="twScreenName">@{screenName}</span></a><span class="twDecoration">) </span><a href="{tweetURL}"><span class="twTimeStamp">{timeStamp}</span></a><span class="twDecoration"></span></span>\n</blockquote>\n</div>
 '''
 
-# This function pretty much taken directly from a tweepy example.
+
 def setup_api():
-  """Authorize the use of the Twitter API."""
-  a = {}
-  with open(os.environ['HOME'] + '/.twang') as twang:
-    for line in twang:
-      k, v = line.split(': ')
-      a[k] = v.strip()
-  auth = tweepy.OAuthHandler(a['consumerKey'], a['consumerSecret'])
-  auth.set_access_token(a['token'], a['tokenSecret'])
-  return tweepy.API(auth)
+    """
+    Authorise the use of the Twitter API.  This requires the appropriate
+    tokens to be set in the system keychain (using the keyring module).
+    """
+    a = {
+        attr: keyring.get_password('twitter', attr) for attr in [
+            'consumerKey',
+            'consumerSecret',
+            'token',
+            'tokenSecret'
+        ]
+    }
+    if None in a.values():
+        raise EnvironmentError("Missing Twitter API keys in keychain.")
+    auth = tweepy.OAuthHandler(consumer_key=a['consumerKey'],
+                               consumer_secret=a['consumerSecret'])
+    auth.set_access_token(key=a['token'], secret=a['tokenSecret'])
+    return tweepy.API(auth)
 
 def wrap_entities(t):
   """Turn URLs and @ mentions into links. Embed Twitter native photos."""

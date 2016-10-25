@@ -4,6 +4,7 @@
 #
 #    pip-compile --output-file requirements.txt requirements.in
 #
+keyring==10.0.2
 oauthlib==2.0.0           # via requests-oauthlib
 pytz==2016.7
 requests-oauthlib==0.7.0  # via tweepy
