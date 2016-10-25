@@ -33,7 +33,7 @@ import keyring
 import pytz
 import tweepy
 
-myTZ = pytz.timezone('US/Central')
+myTZ = pytz.timezone('GB')
 
 TWEET_EMBED_HTML = Template("""
 <div class="bbpBox" id="t{{id}}">
