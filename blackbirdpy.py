@@ -28,13 +28,28 @@
 import re
 import sys
 
+from jinja2 import Template
 import keyring
 import pytz
 import tweepy
 
 myTZ = pytz.timezone('US/Central')
 
-TWEET_EMBED_HTML = u'''<div class="bbpBox" id="t{id}">\n<blockquote>\n<span class="twContent">{tweetText}</span><span class="twMeta"><br /><span class="twDecoration">&mdash; </span><span class="twRealName">{realName}</span><span class="twDecoration"> (</span><a href="http://twitter.com/{screenName}"><span class="twScreenName">@{screenName}</span></a><span class="twDecoration">) </span><a href="{tweetURL}"><span class="twTimeStamp">{timeStamp}</span></a><span class="twDecoration"></span></span>\n</blockquote>\n</div>
+TWEET_EMBED_HTML = Template("""
+<div class="bbpBox" id="t{{id}}">
+  <blockquote>
+    <span class="twContent">{{tweetText}}</span>
+    <span class="twMeta"><br />
+      <span class="twDecoration">&mdash; </span>
+      <span class="twRealName">{{realName}}</span>
+      <span class="twDecoration">(</span><a href="http://twitter.com/{{screenName}}"><span class="twScreenName">@{{screenName}}</span></a><span class="twDecoration">)</span>
+    <a href="{{tweetURL}}"><span class="twTimeStamp">{{timeStamp}}</span></a>
+    <span class="twDecoration"></span></span>
+  </blockquote>
+</div>
+""".strip())
+
+u'''
 '''
 
 
@@ -132,7 +147,7 @@ def embed_tweet_html(tweet_url, extra_css=None):
     if extra_css is None:
         extra_css = {}
 
-    html = TWEET_EMBED_HTML.format(
+    html = TWEET_EMBED_HTML.render(
         id=tweet_id,
         tweetURL=tweet_url,
         screenName=tweet.user.screen_name,
@@ -153,4 +168,4 @@ def embed_tweet_html(tweet_url, extra_css=None):
 
 
 if __name__ == '__main__':
-    print(embed_tweet_html(sys.argv[1]).encode('utf8'))
+    print(embed_tweet_html(sys.argv[1]))
