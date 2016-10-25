@@ -37,20 +37,20 @@ myTZ = pytz.timezone('GB')
 
 TWEET_EMBED_HTML = Template("""
 <style>
-#bbpBox{{ id }} { background: #{{profileBackgroundColor}}; }
-#bbpBox{{ id }} a { color: #{{profile_link_color}}; }
-#bbpBox{{ id }} .metadata a:hover .display_name { color: #{{ profile_link_color }} !important; }
+#bbpBox{{ tweet.id_str }} { background: #{{profile_background_color}}; }
+#bbpBox{{ tweet.id_str }} a { color: #{{profile_link_color}}; }
+#bbpBox{{ tweet.id_str }} .metadata a:hover .display_name { color: #{{ profile_link_color }} !important; }
 </style>
 
-<div id="bbpBox{{ id }}" class="bbpBox bbpBox_new">
+<div id="bbpBox{{ tweet.id_str }}" class="bbpBox bbpBox_new">
   <blockquote class="bbpTweet">
-    <p class="metadata"><a href="https://twitter.com/{{ screenName }}">
-        <img src="{{ profilePic }}" class="avatar"/>
-        <span class="display_name">{{ realName }}</span>
-        <span class="handle">@{{ screenName }}</span>
+    <p class="metadata"><a href="https://twitter.com/{{ user.screen_name }}">
+        <img src="{{ profile_pic }}" class="avatar"/>
+        <span class="display_name">{{ user.name }}</span>
+        <span class="handle">@{{ user.screen_name }}</span>
     </a></p>
-    <p class="tweet">{{tweetText}}</p>
-    <p class="timestamp">{{ timeStamp }}</p>
+    <p class="tweet">{{tweet_text}}</p>
+    <p class="timestamp"><a href="{{ tweet_url }}">{{ timestamp }}</a></p>
   </blockquote>
 </div>
 """.strip())
@@ -130,17 +130,12 @@ def tweet_id_from_tweet_url(tweet_url):
         raise ValueError('Invalid tweet URL: {0}'.format(tweet_url))
 
 
-def embed_tweet_html(tweet_url, extra_css=None):
+def embed_tweet_html(tweet_url):
     """Generate embedded HTML for a tweet, given its Twitter URL.  The
     result is formatted as a simple quote, but with span classes that
     allow it to be reformatted dynamically (through jQuery) in the style
     of Robin Sloan's Blackbird Pie.
     See: http://media.twitter.com/blackbird-pie
-
-    The optional extra_css argument is a dictionary of CSS class names
-    to CSS style text.  If provided, the extra style text will be
-    included in the embedded HTML CSS.  Currently only the bbpBox
-    class name is used by this feature.
     """
     tweet_id = tweet_id_from_tweet_url(tweet_url)
     api = setup_api()
@@ -148,29 +143,20 @@ def embed_tweet_html(tweet_url, extra_css=None):
     tweet_text = wrap_entities(tweet).replace('\n', '<br />')
 
     tweet_created_datetime = pytz.utc.localize(tweet.created_at).astimezone(myTZ)
-    tweet_timestamp = tweet_created_datetime.strftime("%b %-d %Y %-I:%M %p")
+    tweet_timestamp = tweet_created_datetime.strftime("%-I:%M %p - %b %-d %Y")
 
-    if extra_css is None:
-        extra_css = {}
-
-    html = TWEET_EMBED_HTML.render(
-        id=tweet_id,
-        tweetURL=tweet_url,
-        screenName=tweet.user.screen_name,
-        realName=tweet.user.name,
-        tweetText=tweet_text,
+    return TWEET_EMBED_HTML.render(
+        tweet=tweet,
+        tweet_url=tweet_url,
+        user=tweet.user,
+        tweet_text=tweet_text,
         source=tweet.source,
-        profilePic=tweet.user.profile_image_url,
-        profileBackgroundColor=tweet.user.profile_background_color,
-        profileBackgroundImage=tweet.user.profile_background_image_url,
-        profileTextColor=tweet.user.profile_text_color,
-        profile_link_color=tweet.user.profile_link_color,
-        timeStamp=tweet_timestamp,
-        utcOffset=tweet.user.utc_offset,
-        bbpBoxCss=extra_css.get('bbpBox', ''),
+        profile_pic=tweet.user.profile_image_url,
+        profile_background_color=tweet.user.profile_background_color.lower(),
+        profileTextColor=tweet.user.profile_text_color.lower(),
+        profile_link_color=tweet.user.profile_link_color.lower(),
+        timestamp=tweet_timestamp,
     )
-    return html
-
 
 
 if __name__ == '__main__':
