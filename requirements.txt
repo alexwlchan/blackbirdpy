@@ -10,6 +10,6 @@ markupsafe==0.23          # via jinja2
 oauthlib==2.0.0           # via requests-oauthlib
 pytz==2016.7
 requests-oauthlib==0.7.0  # via tweepy
-requests==2.11.1          # via requests-oauthlib, tweepy
+requests==2.11.1
 six==1.10.0               # via tweepy
 tweepy==3.5.0

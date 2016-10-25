@@ -25,15 +25,25 @@
 #   $ python blackbirdpy.py http://twitter.com/punchfork/status/16342628623
 #
 
+import filecmp
+import itertools
+import os
 import re
+import shutil
 import sys
+import tempfile
 
 from jinja2 import Template
 import keyring
 import pytz
+import requests
 import tweepy
 
 myTZ = pytz.timezone('GB')
+
+IMAGE_DIR = os.path.join(
+    os.environ['HOME'], 'Developer', 'alexwlchan.net', 'content', 'images'
+)
 
 TWEET_EMBED_HTML = Template("""
 <style>
@@ -45,7 +55,7 @@ TWEET_EMBED_HTML = Template("""
 <div id="bbpBox{{ tweet.id_str }}" class="bbpBox bbpBox_new">
   <blockquote class="bbpTweet">
     <p class="metadata"><a href="https://twitter.com/{{ user.screen_name }}">
-        <img src="{{ profile_pic }}" class="avatar"/>
+        <img src="/images/{{ profile_pic }}" class="avatar"/>
         <span class="display_name">{{ user.name }}</span>
         <span class="handle">@{{ user.screen_name }}</span>
     </a></p>
@@ -130,6 +140,37 @@ def tweet_id_from_tweet_url(tweet_url):
         raise ValueError('Invalid tweet URL: {0}'.format(tweet_url))
 
 
+def download_file(url):
+    """Download a file.  http://stackoverflow.com/a/16696317/1558022"""
+    _, local_filename = tempfile.mkstemp()
+    # NOTE the stream=True parameter
+    r = requests.get(url, stream=True)
+    with open(local_filename, 'wb') as f:
+        for chunk in r.iter_content(chunk_size=1024):
+            if chunk: # filter out keep-alive new chunks
+                f.write(chunk)
+                #f.flush() commented by recommendation from J.F.Sebastian
+    return local_filename
+
+
+def candidate_filenames(handle):
+    yield os.path.join(IMAGE_DIR, 'twavatar_%s.jpeg' % handle)
+    for i in itertools.count(start=1):
+        yield os.path.join(IMAGE_DIR, 'twavatar_%s_%d.jpeg' % (handle, i))
+
+
+def cache_avatar(profile_image_url, handle):
+    """Cache the avatar locally."""
+    avatar_url = profile_image_url.replace('_normal', '_bigger')
+    local_download = download_file(avatar_url)
+    for filename in candidate_filenames(handle):
+        if not os.path.exists(filename):
+            shutil.move(local_download, filename)
+            return os.path.basename(filename)
+        elif filecmp.cmp(local_download, filename):
+            return os.path.basename(filename)
+
+
 def embed_tweet_html(tweet_url):
     """Generate embedded HTML for a tweet, given its Twitter URL.  The
     result is formatted as a simple quote, but with span classes that
@@ -143,7 +184,12 @@ def embed_tweet_html(tweet_url):
     tweet_text = wrap_entities(tweet).replace('\n', '<br />')
 
     tweet_created_datetime = pytz.utc.localize(tweet.created_at).astimezone(myTZ)
-    tweet_timestamp = tweet_created_datetime.strftime("%-I:%M %p - %b %-d %Y")
+    tweet_timestamp = tweet_created_datetime.strftime("%-I:%M %p - %-d %b %Y")
+
+    avatar_path = cache_avatar(
+        tweet.user.profile_image_url,
+        handle=tweet.user.screen_name
+    )
 
     return TWEET_EMBED_HTML.render(
         tweet=tweet,
@@ -151,7 +197,7 @@ def embed_tweet_html(tweet_url):
         user=tweet.user,
         tweet_text=tweet_text,
         source=tweet.source,
-        profile_pic=tweet.user.profile_image_url,
+        profile_pic=avatar_path,
         profile_background_color=tweet.user.profile_background_color.lower(),
         profileTextColor=tweet.user.profile_text_color.lower(),
         profile_link_color=tweet.user.profile_link_color.lower(),
