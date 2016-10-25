@@ -36,15 +36,21 @@ import tweepy
 myTZ = pytz.timezone('GB')
 
 TWEET_EMBED_HTML = Template("""
-<div class="bbpBox" id="t{{id}}">
-  <blockquote>
-    <span class="twContent">{{tweetText}}</span>
-    <span class="twMeta"><br />
-      <span class="twDecoration">&mdash; </span>
-      <span class="twRealName">{{realName}}</span>
-      <span class="twDecoration">(</span><a href="http://twitter.com/{{screenName}}"><span class="twScreenName">@{{screenName}}</span></a><span class="twDecoration">)</span>
-    <a href="{{tweetURL}}"><span class="twTimeStamp">{{timeStamp}}</span></a>
-    <span class="twDecoration"></span></span>
+<style>
+#bbpBox{{ id }} { background: #{{profileBackgroundColor}}; }
+#bbpBox{{ id }} a { color: #{{profile_link_color}}; }
+#bbpBox{{ id }} .metadata a:hover .display_name { color: #{{ profile_link_color }} !important; }
+</style>
+
+<div id="bbpBox{{ id }}" class="bbpBox bbpBox_new">
+  <blockquote class="bbpTweet">
+    <p class="metadata"><a href="https://twitter.com/{{ screenName }}">
+        <img src="{{ profilePic }}" class="avatar"/>
+        <span class="display_name">{{ realName }}</span>
+        <span class="handle">@{{ screenName }}</span>
+    </a></p>
+    <p class="tweet">{{tweetText}}</p>
+    <p class="timestamp">{{ timeStamp }}</p>
   </blockquote>
 </div>
 """.strip())
@@ -158,7 +164,7 @@ def embed_tweet_html(tweet_url, extra_css=None):
         profileBackgroundColor=tweet.user.profile_background_color,
         profileBackgroundImage=tweet.user.profile_background_image_url,
         profileTextColor=tweet.user.profile_text_color,
-        profileLinkColor=tweet.user.profile_link_color,
+        profile_link_color=tweet.user.profile_link_color,
         timeStamp=tweet_timestamp,
         utcOffset=tweet.user.utc_offset,
         bbpBoxCss=extra_css.get('bbpBox', ''),
