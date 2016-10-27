@@ -9,6 +9,8 @@
 #
 # Various formatting changes by Dr. Drang, http://twitter.com/drdrang
 #
+# Additional changes by Alex Chan, http://twitter.com/alexwlchan
+#
 # Requires Python 2.6.
 #
 # Usage:
@@ -46,6 +48,21 @@ IMAGE_DIR = os.path.join(
 )
 
 TWEET_EMBED_HTML = Template("""
+
+<!-- This comment is provided for the purposes of RSS autogen, and is stripped out in the final HTML -->
+<!-- rss_tweet
+<blockquote>
+  <span class="twContent">{{ tweet_text }}</span>
+  <span class="twMeta"><br />
+    <span class="twDecoration">&nbsp;&nbsp;&mdash; </span>
+    <span class="twRealName">{{ user.name }}</span>
+    <span class="twDecoration"> (</span><a href="http://twitter.com/{{ user.screen_name }}"><span class="twScreenName">@{{ user.screen_name }}</span></a><span class="twDecoration">) </span>
+    <a href="{{ tweet_url }}"><span class="twTimeStamp">{{ timestamp }}</span></a><span class="twDecoration"></span>
+  </span>
+</blockquote>
+end_rss_tweet -->
+
+<!-- start_bbpBox -->
 <style>
 #bbpBox{{ tweet.id_str }} { background: #{{profile_background_color}}; }
 #bbpBox{{ tweet.id_str }} a { color: #{{profile_link_color}}; }
@@ -63,6 +80,7 @@ TWEET_EMBED_HTML = Template("""
     <p class="timestamp"><a href="{{ tweet_url }}">{{ timestamp }}</a></p>
   </blockquote>
 </div>
+<!-- end_bbpBox -->
 """.strip())
 
 u'''
