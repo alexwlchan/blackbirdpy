@@ -1,3 +1,19 @@
+**@alexwlchan:** I made some changes to this code, but I haven't touched it in over two years and I haven't used it for almost as long.
+
+You can see my current approach in this Jekyll plugin: <https://github.com/alexwlchan/alexwlchan.net/blob/114199fec239df2cce81b2939f66065f6cc90b8a/src/_plugins/twitter.rb>.
+
+It takes a different approach:
+
+*   Download the complete Twitter API response (plus profile image) as a JSON file.
+    This gets saved in the `_twitter` directory in my Jekyll site.
+
+*   When I want to display a tweet, it reads this JSON file and renders an HTML template.
+
+This is a bit more flexible: rather than hard-coding HTML in my posts, there's a single template which is re-rendered every time, so I can easily change the style of old tweets.
+Having the complete API response gives me more flexibility to do so.
+
+---
+
 Blackbirdpy is a set of scripts and styles for quickly embedding "live" tweets in blog posts or other web articles. All links within the tweet, including URLS, screen names, and hashtags are fully clickable. It accesses the Twitter API, but does no user tracking, cookie planting, or other sketchy business.
 
 There are three parts to blackbirdpy:
@@ -14,7 +30,7 @@ Here's an example, which sort of matches what you'd see in an RSS reader:
 
 If you follow the link in the tweet, you'll see several tweets.
 
-Blackbirdpy was forked from [Jeff Miller's project][1], , which was, in turn, inspired by [Robin Sloan's Blackbird Pie][2], a JavaScript tool for embedding tweets that Twitter seems to have removed in favor of a more complicated embedding code that I don't like the look of. 
+Blackbirdpy was forked from [Jeff Miller's project][1], , which was, in turn, inspired by [Robin Sloan's Blackbird Pie][2], a JavaScript tool for embedding tweets that Twitter seems to have removed in favor of a more complicated embedding code that I don't like the look of.
 
 
 [1]: http://twitter.com/jmillerinc/blackbirdpy
